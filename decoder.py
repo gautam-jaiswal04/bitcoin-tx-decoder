@@ -18,15 +18,41 @@ def decode_varint(data, index):
     else:
         return little_endian_to_int(data[index+1:index+9]), index + 9
 
-def decode_transaction(raw_tx):
-    tx = bytes.fromhex(raw_tx)
+def decode_transaction(raw_hex):
+    data = bytes.fromhex(raw_hex)
     index = 0
 
-    version_bytes, index = read_bytes(tx, index, 4)
-    version = little_endian_to_int(version_bytes)
-
+    
+    version = little_endian_to_int(data[index:index+4])
+    index += 4
     print("Transaction Version:", version)
 
+   
+    input_count, index = decode_varint(data, index)
+    print("Number of Inputs:", input_count)
 
-raw_tx = "0100000001"
+   
+    for i in range(input_count):
+        print(f"\nInput {i+1}")
+
+        prev_txid = data[index:index+32][::-1].hex()
+        index += 32
+        print("Previous TXID:", prev_txid)
+
+        vout = little_endian_to_int(data[index:index+4])
+        index += 4
+        print("Output Index:", vout)
+
+        script_length, index = decode_varint(data, index)
+        index += script_length
+        print("ScriptSig Length:", script_length)
+
+        sequence = data[index:index+4].hex()
+        index += 4
+        print("Sequence:", sequence)
+
+
+raw_tx = "0100000001813f79011acb80925dfe69b3def355fe914bd1d96a3f5f71bf8303c6a989c7d5000000006b483045022100f3581e1972ae8ac7c7367a7a253bc1135223adb9a468bb3a59233f45bc57838022059af01ca17d00e41837a1d58f8f08f6b14b14d3b6b06c7a7b57c0a7a0b4c012102b46342b1a1fdd8db1d6b4fdf7e6e6b7965a7ab6b5234f6b31d9114ef95b1ffffffff"
+
 decode_transaction(raw_tx)
+
